@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="hello">Hello World, MainActv!</string>
+    <string name="app_name">CM2</string>
+
+    <!-- main_menu.xml -->
+	    <string name="main_opt_menu_refresh_db">DBリフレッシュ</string>
+	    <string name="main_opt_menu_db_activity">データベース</string>
+	    <string name="main_opt_menu_add_patterns">定型句登録</string>
+	    <string name="main_opt_menu_folder_trees">フォルダ・ツリー</string>
+	    <string name="main_opt_menu_internet">インターネット</string>
+    
+    <!-- Generic items -->
+	    <string name="generic_bt_ok">OK</string>
+	    <string name="generic_bt_cancel">キャンセル</string>
+	    <string name="generic_tv_confirm">確認</string>
+	    <string name="generic_tv_menu">メニュー</string>
+	    <string name="generic_tv_register">登録</string>
+    
+    
+    <!-- dlg_item_menu.xml -->
+	    <string name="dlg_item_menu_item_title">メニュー</string>
+	    <string name="dlg_item_menu_item_add_memo">メモ追加</string>
+	    <string name="dlg_item_menu_item_move">移動</string>
+	    <string name="dlg_item_menu_item_delete">削除</string>
+
+	<!-- dlg_register_patterns.xml -->
+    	<string name="dlg_register_patterns_title">定型句登録</string>
+    	<string name="dlg_register_patterns_tv_word">語句</string>
+    	<string name="dlg_register_patterns_tv_table_name">テーブル名</string>
+	    
+	<!-- internet_actv.xml -->
+	    <string name="internet_actv_tv_post">POST通信</string>
+	    
+</resources>
