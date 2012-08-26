@@ -5,37 +5,39 @@ public class FileItem {
 //	int db_id;
 	String file_name;
 	String file_path;
+	String table_name;
 	
-	long date_added;
-	long date_modified;
-	
-	long duration;
-	
-	String file_info;
-	String memos;
+	String memo;
+	String genre;
 
-	String located_at;
+	long duration;
+
+	long registered_at;
+	long modified_at;
+	
 	
 	/****************************************
 	 * Constructors
 	 ****************************************/
 	public FileItem(
-						String file_name, String file_path,
-						long duration,
-						long date_added, long date_modified, 
-						String file_info, String memos,
-						String located_at) {
+						String file_name, String file_path, String table_name,
+						
+						String memo, String genre,
+
+						long duration, long registered_at, long modified_at) {
 		
 		this.file_name = file_name;
 		this.file_path = file_path;
 		
-		this.date_added = date_added; 
-		this.date_modified = date_modified;
+		this.table_name = table_name; 
+		this.memo = memo;
 		
+		this.genre = genre; 
+
 		this.duration = duration;
 		
-		this.file_info = file_info; 
-		this.memos = memos;
+		this.registered_at = registered_at;
+		this.modified_at = modified_at;
 		
 	}//public FileItem()
 
@@ -45,13 +47,6 @@ public class FileItem {
 	
 	}//public FileItem()
 
-	/****************************************
-	 * Methods
-	 ****************************************/
-//	public int getDb_id() {
-//		return db_id;
-//	}
-
 	public String getFile_name() {
 		return file_name;
 	}
@@ -60,28 +55,28 @@ public class FileItem {
 		return file_path;
 	}
 
-	public long getDate_added() {
-		return date_added;
+	public String getTable_name() {
+		return table_name;
 	}
 
-	public long getDate_modified() {
-		return date_modified;
+	public String getMemo() {
+		return memo;
 	}
 
-	public String getFile_info() {
-		return file_info;
-	}
-
-	public String getMemos() {
-		return memos;
+	public String getGenre() {
+		return genre;
 	}
 
 	public long getDuration() {
 		return duration;
 	}
 
-	public String getLocated_at() {
-		return located_at;
+	public long getRegistered_at() {
+		return registered_at;
+	}
+
+	public long getModified_at() {
+		return modified_at;
 	}
 
 	public void setFile_name(String file_name) {
@@ -92,20 +87,28 @@ public class FileItem {
 		this.file_path = file_path;
 	}
 
-	public void setDuration(long duration) {
-		this.duration = duration;
+	public void setTable_name(String table_name) {
+		this.table_name = table_name;
 	}
 
-	public void setFile_info(String file_info) {
-		this.file_info = file_info;
+	public void setMemo(String memo) {
+		this.memo = memo;
 	}
 
-	public void setMemos(String memos) {
-		this.memos = memos;
+	public void setGenre(String genre) {
+		this.genre = genre;
 	}
 
-	public void setLocated_at(String located_at) {
-		this.located_at = located_at;
+	public void setModified_at(long modified_at) {
+		this.modified_at = modified_at;
 	}
+
+	/****************************************
+	 * Methods
+	 ****************************************/
+//	public int getDb_id() {
+//		return db_id;
+//	}
+
 	
 }//public class FileItem

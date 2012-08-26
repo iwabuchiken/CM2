@@ -53,6 +53,7 @@ import android.os.AsyncTask;
 import org.apache.commons.lang.StringUtils;
 
 
+import cm2.items.FileItem;
 import cm2.listeners.DialogButtonOnClickListener;
 import cm2.listeners.DialogButtonOnTouchListener;
 import cm2.main.MainActv;
@@ -999,5 +1000,307 @@ public class Methods {
 		
 	}//public static List<String> prepare_file_list_tapeatalk(Activity actv)
 
+	public static boolean refreshMainDB(Activity actv) {
+		// Log
+		Log.d("Methods.java" + "["
+				+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+				+ "]", "refreshMainDB => Started");
+		
+		
+		/*----------------------------
+		 * Steps
+		 * 1. Set up DB(writable)
+		 * 2. Table exists?
+		 * 2-1. If no, then create one
+
+		 * 3. Prepare data
+
+		 * 4. Insert data into db
+		 *
+		 * 5. Update table "refresh_log"
+		 * 
+		 * 9. Close db
+		 * 
+		 * 10. Return
+			----------------------------*/
+		/*----------------------------
+		 * 1. Set up DB(writable)
+			----------------------------*/
+		//
+		DBUtils dbu = new DBUtils(actv, MainActv.dbName);
+		
+		//
+		SQLiteDatabase wdb = dbu.getWritableDatabase();
+		
+		/*----------------------------
+		 * 2. Table exists?
+		 * 2-1. If no, then create one
+			----------------------------*/
+		boolean res = Methods.refreshMainDB_1_setup_table(wdb, dbu);
+		
+		if (res == false) {
+			
+			// Log
+			Log.d("Methods.java" + "["
+					+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+					+ "]", "refreshMainDB_1_setup_table => false");
+			
+			wdb.close();
+			
+			return false;
+			
+		}//if (res == false)
+		
+		/*----------------------------
+		 * 3. Prepare data
+		 * 		1. Last refreshed
+			----------------------------*/
+		/*----------------------------
+		 * 3.1. Last refreshed
+			----------------------------*/
+		long last_refreshed = Methods.refreshMainDB_2_last_refreshed(wdb, dbu, MainActv.tableName_refreshLog);
+		
+		if (last_refreshed == -1) {
+			
+			// Log
+			Log.d("Methods.java" + "["
+					+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+					+ "]", "last_refreshed == -1");
+			
+			wdb.close();
+			
+			return false;
+			
+		}//if (last_refreshed == -1)
+		
+		// Log
+		Log.d("Methods.java" + "["
+				+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+				+ "]", "last_refreshed: " + last_refreshed);
+		
+		
+		//debug
+		wdb.close();
+		
+		return false;
+		
+		
+//		List<FileItem> fileItems = prepare_FileItemList(wdb);
+//
+//		if (fileItems == null) {
+//			
+//			// Log
+//			Log.d("Methods.java" + "["
+//					+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+//					+ "]", "fileItems == null");
+//			
+//			return false;
+//			
+//		}//if (fileItems == null)
+//		
+//		/*----------------------------
+//		 * 4. Insert data into db
+//			----------------------------*/
+//		// Log
+//		Log.d("Methods.java" + "["
+//				+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+//				+ "]", "fileItems.size(): " + fileItems.size());
+//		
+//		int counter = 0;
+//		
+//		for (FileItem fileItem : fileItems) {
+//			
+//			res = storeFileItem2DB(actv, wdb, dbu, DBUtils.mainTableName, fileItem);
+//		
+//			if (res == false) {
+//				
+//				counter += 1;
+//				
+//			}//if (res == false)
+//			
+//		}//for (FileItem fileItem : fileItems)
+//		
+//		// Log
+//		Log.d("Methods.java" + "["
+//				+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+//				+ "]", "counter: " + counter + " / " + "File items: " + fileItems.size());
+//		
+//		
+//		/*----------------------------
+//		 * 9. Close db
+//			----------------------------*/
+//		wdb.close();
+//		
+//		/*----------------------------
+//		 * 10. Return
+//			----------------------------*/
+//		if (counter > 0) {
+//
+//			return false;
+//			
+//		} else {//if (counter != 0)
+//			
+//			return true;
+//			
+//		}//if (counter != 0)
+		
+//		return true;
+		
+	}//public static boolean refreshMainDB(Activity actv)
+
+	/****************************************
+	 *
+	 * 
+	 * <Caller> 1. <Desc> 1. <Params> 1.
+	 * 
+	 * <Return>
+	 * 	-1		=> Can't create a table
+	 * 0		=> Last refreshed ==> 0
+	 * > 0	=> Last refreshed date (in mill sec)
+	 * <Steps> 1.
+	 ****************************************/
+	private static long refreshMainDB_2_last_refreshed(
+							SQLiteDatabase wdb, DBUtils dbu, String tableName) {
+		/*----------------------------
+		 * 1. Table exists?
+		 * 2. Get data
+			----------------------------*/
+		boolean res = dbu.tableExists(wdb, tableName);
+		
+		if (res == false) {
+			// Log
+			Log.d("Methods.java" + "["
+					+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+					+ "]", "テーブルを作ります");
+			
+			res = dbu.createTable(
+								wdb, 
+								tableName, 
+								DBUtils.cols_refresh_log, 
+								DBUtils.col_types_refresh_log);
+			
+			if (res == false) {
+				
+				// Log
+				Log.d("Methods.java" + "["
+						+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+						+ "]", "テーブルを作れませんでした");
+				
+				wdb.close();
+				
+				return -1;
+				
+			} else {//if (res == false)
+				
+				// Log
+				Log.d("Methods.java" + "["
+						+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+						+ "]", "テーブルを作りました");
+				
+				return 0;
+				
+			}//if (res == false)
+			
+		} else {//if (res == false)
+			
+			// Log
+			Log.d("Methods.java" + "["
+					+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+					+ "]", "テーブルはすでにあります");
+			
+		}//if (res == false)
+		
+		/*----------------------------
+		 * 2. Get data
+			----------------------------*/
+		long lastRefreshedDate;
+		
+		String sql = "SELECT * FROM refresh_log ORDER BY " + android.provider.BaseColumns._ID + " DESC";
+		
+		Cursor tempC = wdb.rawQuery(sql, null);
+		
+		Log.d("Methods.java" + "["
+				+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+				+ "]", "tempC.getCount() => " + tempC.getCount());
+
+		if (tempC.getCount() > 0) {
+			
+			tempC.moveToFirst();
+			
+			lastRefreshedDate = tempC.getLong(1);
+			
+			// Log
+			Log.d("Methods.java"
+					+ "["
+					+ Thread.currentThread().getStackTrace()[2]
+							.getLineNumber() + "]", 
+					"lastRefreshedDate => " + String.valueOf(lastRefreshedDate) +
+					" (I will refresh db based on this date!)");
+			
+			return lastRefreshedDate;
+			
+		} else {//if (tempC.getCount() > 0)
+			
+			return 0;
+			
+		}//if (tempC.getCount() > 0)
+		
+	}//private static long refreshMainDB_2_last_refreshed()
+
+	public static boolean refreshMainDB_1_setup_table(SQLiteDatabase wdb, DBUtils dbu) {
+		/*----------------------------
+		 * 2. Table exists?
+		 * 2-1. If no, then create one
+			----------------------------*/
+		String tableName = MainActv.tableName_root;
+		
+		boolean res = dbu.tableExists(wdb, tableName);
+
+		if (res == false) {
+			// Log
+			Log.d("Methods.java" + "["
+					+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+					+ "]", "テーブルを作ります");
+			
+			res = dbu.createTable(
+								wdb, 
+								tableName, 
+								DBUtils.cols_main_table, 
+								DBUtils.col_types_main_table);
+			
+			if (res == false) {
+				
+				// Log
+				Log.d("Methods.java" + "["
+						+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+						+ "]", "テーブルを作れませんでした");
+				
+				wdb.close();
+				
+				return false;
+				
+			} else {//if (res == false)
+				
+				// Log
+				Log.d("Methods.java" + "["
+						+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+						+ "]", "テーブルを作りました");
+				
+				return true;
+				
+			}//if (res == false)
+			
+		} else {//if (res == false)
+			
+			// Log
+			Log.d("Methods.java" + "["
+					+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+					+ "]", "テーブルはすでにあります");
+
+			return true;
+		}//if (res == false)
+		
+		
+	}//refreshMainDB_1_setup_table(SQLiteDatabase wdb, DBUtils dbu)
 	
 }//public class Methods

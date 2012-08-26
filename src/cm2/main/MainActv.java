@@ -12,6 +12,7 @@ import cm2.listeners.CustomOnItemLongClickListener;
 import cm2.utils.DBUtils;
 import cm2.utils.FileListAdapter;
 import cm2.utils.Methods;
+import cm2.utils.RefreshDBTask;
 import android.app.Activity;
 import android.app.ListActivity;
 import android.database.sqlite.SQLiteDatabase;
@@ -22,6 +23,7 @@ import android.os.Environment;
 import android.os.Vibrator;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
@@ -89,6 +91,8 @@ public class MainActv extends ListActivity {
 	public static String dbName = "CM2.db";
 	
 	public static String tableName_root = "CM2";
+	
+	public static String tableName_refreshLog = "refresh_log";
 	
 	/*----------------------------
 	 * Numbers
@@ -505,15 +509,35 @@ public class MainActv extends ListActivity {
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		// TODO 自動生成されたメソッド・スタブ
+
+		MenuInflater mi = getMenuInflater();
+		mi.inflate(R.menu.main_menu, menu);
+
 		return super.onCreateOptionsMenu(menu);
 	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		// TODO 自動生成されたメソッド・スタブ
+
+		vib.vibrate(Methods.vibLength_click);
+		
+		switch (item.getItemId()) {
+		
+		case R.id.main_opt_menu_refresh_db://---------------------------------------
+
+			vib.vibrate(Methods.vibLength_click);
+			
+			RefreshDBTask task_ = new RefreshDBTask(this);
+			
+			task_.execute("Start");
+			
+			break;
+			
+		}//switch (item.getItemId())
+		
 		return super.onOptionsItemSelected(item);
-	}
+		
+	}//public boolean onOptionsItemSelected(MenuItem item)
 
 	@Override
 	protected void onPause() {
