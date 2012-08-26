@@ -31,6 +31,7 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -62,6 +63,7 @@ public class Methods {
 
 	static int counter;		// Used => sortFileList()
 	
+	static long last_refreshed;
 	
 	/****************************************
 	 * Enums
@@ -1054,6 +1056,7 @@ public class Methods {
 		/*----------------------------
 		 * 3. Prepare data
 		 * 		1. Last refreshed
+		 * 		2. Get a list
 			----------------------------*/
 		/*----------------------------
 		 * 3.1. Last refreshed
@@ -1079,33 +1082,48 @@ public class Methods {
 				+ "]", "last_refreshed: " + last_refreshed);
 		
 		
-		//debug
-		wdb.close();
+		/*----------------------------
+		 * 3.2. Get a list
+			----------------------------*/
+		List<FileItem> fileItems = refreshMainDB_3_prepare_FileItemList(wdb, last_refreshed);
+
+		// Log
+		Log.d("Methods.java" + "["
+				+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+				+ "]", "fileItems.size(): " + fileItems.size());
+
+		if (fileItems.size() < 1) {
+			
+			// Log
+			Log.d("Methods.java" + "["
+					+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+					+ "]", "fileItems.size() < 1");
+			
+			wdb.close();
+			
+			return false;
+			
+		}//if (fileItems.size() < 1)
+
 		
-		return false;
-		
-		
-//		List<FileItem> fileItems = prepare_FileItemList(wdb);
-//
-//		if (fileItems == null) {
-//			
-//			// Log
-//			Log.d("Methods.java" + "["
-//					+ Thread.currentThread().getStackTrace()[2].getLineNumber()
-//					+ "]", "fileItems == null");
-//			
-//			return false;
-//			
-//		}//if (fileItems == null)
-//		
-//		/*----------------------------
-//		 * 4. Insert data into db
-//			----------------------------*/
-//		// Log
-//		Log.d("Methods.java" + "["
-//				+ Thread.currentThread().getStackTrace()[2].getLineNumber()
-//				+ "]", "fileItems.size(): " + fileItems.size());
-//		
+		/*----------------------------
+		 * 4. Insert data into db
+			----------------------------*/
+		int i_res = refreshMainDB_4_insert_data_into_db(actv, wdb, dbu, MainActv.tableName_root, fileItems);
+
+		if (i_res < 1) {
+
+			// Log
+			Log.d("Methods.java" + "["
+					+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+					+ "]", "i_res < 1");
+			
+			wdb.close();
+			
+			return false;
+			
+		}//if (i_res != 0)
+
 //		int counter = 0;
 //		
 //		for (FileItem fileItem : fileItems) {
@@ -1124,7 +1142,40 @@ public class Methods {
 //		Log.d("Methods.java" + "["
 //				+ Thread.currentThread().getStackTrace()[2].getLineNumber()
 //				+ "]", "counter: " + counter + " / " + "File items: " + fileItems.size());
+//
+		
+		/*----------------------------
+		 * 5. Update table "refresh_log"
+			----------------------------*/
+		
+		res = Methods.refreshMainDB_5_updateRefreshLog(
+				actv, wdb, dbu, i_res, fileItems);
+		
+		/*----------------------------
+		 * 9. Close db
+			----------------------------*/
+		wdb.close();
+		
+		/*----------------------------
+		 * 10. Return
+			----------------------------*/
+		if (res == true) {
+
+			return true;
+			
+		} else {//if (res != 0)
+			
+			return false;
+			
+		}//if (res != 0)
+
+//		//debug
+//		wdb.close();
 //		
+//		return res;
+		
+
+		//		
 //		
 //		/*----------------------------
 //		 * 9. Close db
@@ -1147,6 +1198,9 @@ public class Methods {
 //		return true;
 		
 	}//public static boolean refreshMainDB(Activity actv)
+
+	
+
 
 	/****************************************
 	 *
@@ -1302,5 +1356,430 @@ public class Methods {
 		
 		
 	}//refreshMainDB_1_setup_table(SQLiteDatabase wdb, DBUtils dbu)
-	
+
+	/****************************************
+	 * prepare_FileItemList(SQLiteDatabase wdb)
+	 * 
+	 * <Caller> 
+	 * 1. refreshMainDB(Activity actv)
+	 * 
+	 * <Desc> 
+	 * 1. Convert file list into FileItem list
+	 * 		=> The other method in Methods.java, "convert_DB2FileItemList"
+	 * 				converts data in database into FileItem list
+	 * 
+	 * 
+	 * <Params> 1.
+	 * 
+	 * <Return> 1.
+	 * 
+	 * <Steps> 1.
+	 ****************************************/
+	private static List<FileItem> refreshMainDB_3_prepare_FileItemList(SQLiteDatabase wdb, long last_refreshed) {
+		
+		Methods.last_refreshed = last_refreshed;
+		
+		File[] files = new File(MainActv.dirPath_tapeatalk).listFiles(new FileFilter(){
+
+			@Override
+			public boolean accept(File f) {
+				// TODO 自動生成されたメソッド・スタブ
+				
+				return f.lastModified() > Methods.last_refreshed;
+			}
+			
+		});//File[] files = new File()
+		
+		List<FileItem> fileItems = new ArrayList<FileItem>();
+		
+		
+		for (File file : files) {
+			/*----------------------------
+			 * Steps
+			 * 1. Each datum
+			 * 2. Duration
+			 * 3. Instatiate FileItem object
+			 * 4. Add to list
+			 * 5. Return
+				----------------------------*/
+			
+			
+//			file_names.add(file.getName());
+			
+			String file_name = file.getName();
+//			String file_path = file.getAbsolutePath();
+			String file_path = file.getParent();
+			
+			String table_name = MainActv.tableName_root;
+			
+			String memo = "";
+			String genre = "";
+			
+//			long duration = Methods.getDuration(file_path);
+			long duration = Methods.getDuration(new File(file_path, file_name).getAbsolutePath());
+			
+			// Log
+			Log.d("Methods.java" + "["
+					+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+					+ "]", "name: " + file_name + " / " + "duration: " + duration);
+
+//			// Log
+//			Log.d("Methods.java" + "["
+//					+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+////					+ "]", "file.getPath(): " + file.getPath());
+//					+ "]", "file.getParent(): " + file.getParent());
+
+			
+			long registered_at = file.lastModified();
+			long modified_at = file.lastModified();
+			
+			/*----------------------------
+			 * 3. Instatiate FileItem object
+			 * 4. Add to list
+				----------------------------*/
+			fileItems.add(new FileItem(
+									file_name, file_path, table_name,
+									memo, genre,
+									duration, registered_at, modified_at));
+			
+		}//for (File file : files)
+
+		/*----------------------------
+		 * 5. Return
+			----------------------------*/
+		return fileItems;
+		
+	}//private static List<FileItem> refreshMainDB_3_prepare_FileItemList(SQLiteDatabase wdb)
+
+	private static int refreshMainDB_4_insert_data_into_db(
+					Activity actv, SQLiteDatabase wdb, DBUtils dbu, 
+					String tableName, List<FileItem> fileItems) {
+		
+		int counter = 0;
+		boolean res;
+		
+		for (FileItem fileItem : fileItems) {
+			
+			res = store_fileItem_to_db(actv, wdb, dbu, tableName, DBUtils.cols_main_table[0], fileItem);
+		
+//			if (res == false) {
+			if (res == true) {
+				
+				counter += 1;
+				
+			}//if (res == false)
+			
+		}//for (FileItem fileItem : fileItems)
+		
+		// Log
+		Log.d("Methods.java" + "["
+				+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+				+ "]", "counter: " + counter + " / " + "File items: " + fileItems.size());
+
+
+		return counter;
+	}//private static int refreshMainDB_4_insert_data_into_db()
+
+	private static boolean refreshMainDB_5_updateRefreshLog(
+							Activity actv, SQLiteDatabase wdb, DBUtils dbu, 
+							int num_of_items_stored, List<FileItem> fileItems) {
+		/*----------------------------
+		 * 1. Get the last updated time
+		 * 2. Insert data
+		 * 3. Return
+			----------------------------*/
+		/*----------------------------
+		 * 1. Get the last updated time
+			----------------------------*/
+		long lastUpdated = -1;
+		
+		for (FileItem fileItem : fileItems) {
+			
+			if (fileItem.getRegistered_at() > lastUpdated) {
+				
+				lastUpdated = fileItem.getRegistered_at();
+				
+			}//if (fileItem.getRegistered_at() > lastUpdated)
+		}
+		
+		if (lastUpdated == -1) {
+			
+			lastUpdated = 0;
+			
+		}//if (condition)
+		
+		/*----------------------------
+		 * 2. Insert data
+			----------------------------*/
+		Object[] data = {lastUpdated, num_of_items_stored};
+		
+		boolean res = dbu.insertData_refresh_log(wdb, MainActv.tableName_refreshLog, data);
+		
+		/*----------------------------
+		 * 3. Return
+			----------------------------*/
+		return res;
+		
+	}//private static boolean refreshMainDB_5_updateRefreshLog
+
+	/****************************************
+	 *
+	 * 
+	 * <Caller> 1. <Desc> 1. <Params> 1.
+	 * 
+	 * <Return>
+	 * 	false		=> Data is in db alread, or, insertion failed
+	 *	true		=> Data inserted
+	 * 
+	 * <Steps> 1.
+	 ****************************************/
+	private static boolean store_fileItem_to_db(Activity actv,
+			SQLiteDatabase wdb, DBUtils dbu, String tableName, String colName, FileItem fileItem) {
+		
+		/*----------------------------
+		 * Steps
+		 * 1. Is the item already in the table?
+		 * 2. If not, insert data
+			----------------------------*/
+		/*----------------------------
+		 * 1. Is the item already in the table?
+			----------------------------*/
+		boolean res = DBUtils.isInTable(
+							actv, wdb, tableName, colName, fileItem.getFile_name());
+		
+		// If the item is in the table, the return will be true, thus this method itself
+		//	returns false.
+		if (res == true) {
+			
+			// Log
+			Log.d("Methods.java" + "["
+					+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+					+ "]", "res == true: " + fileItem.getFile_name());
+			
+			return false;
+			
+		}//if (res == false)
+		
+		
+		/*----------------------------
+		 * 2. If not, insert data
+			----------------------------*/
+		Object[] values = {
+				
+				fileItem.getFile_name(),
+				fileItem.getFile_path(),
+				
+				fileItem.getTable_name(),
+				
+				fileItem.getMemo(),
+				fileItem.getGenre(),
+				
+				fileItem.getDuration(),
+				fileItem.getRegistered_at(),
+				fileItem.getModified_at()
+		};
+		
+		res = dbu.insertData_fileItem(wdb, tableName, DBUtils.cols_main_table, values);
+		
+		if (res == false) {
+			
+			// Log
+			Log.d("Methods.java" + "["
+					+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+					+ "]", "Insert into db failed: " + fileItem.getFile_name());
+			
+			return false;
+			
+		} else {//if (res == false)
+
+			// Log
+			Log.d("Methods.java" + "["
+					+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+					+ "]", "Data inserted: " + fileItem.getFile_name());
+			
+			return true;
+			
+		}//if (res == false)
+
+	}//private static boolean store_fileItem_to_db()
+
+	private static long getDuration(String file_path) {
+		/*----------------------------
+		 * 2. Duration
+		 * 		1. temp_mp
+		 * 		2. Set source
+		 * 		2-1. Prepare
+		 * 		2-2. Get duration
+		 * 		2-3. Release temp_mp
+		 * 
+		 * 		3. Prepare	=> NOP
+		 * 		4. Start			=> NOP
+			----------------------------*/
+		MediaPlayer temp_mp = new MediaPlayer();
+		
+		try {
+			
+			temp_mp.setDataSource(file_path);
+			
+		} catch (IllegalArgumentException e) {
+			
+			// Log
+			Log.d("Methods.java"
+					+ "["
+					+ Thread.currentThread().getStackTrace()[2]
+							.getLineNumber() + "]", "Exception: " + e.toString());
+			
+			return -1;
+			
+		} catch (IllegalStateException e) {
+			// Log
+			Log.d("Methods.java"
+					+ "["
+					+ Thread.currentThread().getStackTrace()[2]
+							.getLineNumber() + "]", "Exception: " + e.toString());
+			
+			return -1;
+			
+		} catch (IOException e) {
+			// Log
+			Log.d("Methods.java"
+					+ "["
+					+ Thread.currentThread().getStackTrace()[2]
+							.getLineNumber() + "]", "Exception: " + e.toString());
+			
+			return -1;
+			
+		}//try
+		
+		/*----------------------------
+		 * 2.2-1. Prepare
+			----------------------------*/
+		try {
+			
+			temp_mp.prepare();
+			
+		} catch (IllegalStateException e) {
+			// Log
+			Log.d("Methods.java"
+					+ "["
+					+ Thread.currentThread().getStackTrace()[2]
+							.getLineNumber() + "]", "Exception: " + e.toString());
+			
+			return -1;
+			
+		} catch (IOException e) {
+			// Log
+			Log.d("Methods.java"
+					+ "["
+					+ Thread.currentThread().getStackTrace()[2]
+							.getLineNumber() + "]", "Exception: " + e.toString());
+			
+			return -1;
+			
+		}//try
+
+		/*----------------------------
+		 * 2.2-2. Get duration
+			----------------------------*/
+		long duration = temp_mp.getDuration();
+		
+		/*----------------------------
+		 * 2.2-3. Release temp_mp
+			----------------------------*/
+		temp_mp.reset();
+		temp_mp.release();
+		temp_mp = null;
+		
+		return duration;
+		
+	}//private static long getDuration(String file_path)
+
+	private static boolean updateRefreshLog(
+			Activity actv, SQLiteDatabase wdb, 
+			DBUtils dbu, long lastItemDate, int numOfItemsAdded) {
+		/*----------------------------
+		* Steps
+		* 1. Table exists?
+		* 2. If no, create one
+		* 2-2. Create table failed => Return
+		* 3. Insert data
+		----------------------------*/
+		/*----------------------------
+		 * 1. Table exists?
+			----------------------------*/
+		String tableName = MainActv.tableName_refreshLog;
+		
+		if(!dbu.tableExists(wdb, tableName)) {
+		
+			Log.d("Methods.java" + "["
+			+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+			+ "]", "Table doesn't exitst: " + tableName);
+		
+			/*----------------------------
+			* 2. If no, create one
+			----------------------------*/
+			if(dbu.createTable(wdb, tableName, 
+				DBUtils.cols_refresh_log, DBUtils.col_types_refresh_log)) {
+				
+				//toastAndLog(actv, "Table created: " + tableName, 3000);
+				
+				// Log
+				Log.d("Methods.java"
+				+ "["
+				+ Thread.currentThread().getStackTrace()[2]
+				.getLineNumber() + "]", "Table created: " + tableName);
+			
+			} else {//if
+				/*----------------------------
+				* 2-2. Create table failed => Return
+				----------------------------*/
+				//toastAndLog(actv, "Create table failed: " + tableName, 3000);
+				
+				// Log
+				Log.d("Methods.java"
+				+ "["
+				+ Thread.currentThread().getStackTrace()[2]
+				.getLineNumber() + "]", "Create table failed: " + tableName);
+				
+				
+				return false;
+			
+			}//if
+		
+		} else {//if(dbu.tableExists(wdb, ImageFileManager8Activity.refreshLogTableName))
+		
+			//toastAndLog(actv, "Table exitsts: " + tableName, 2000);
+			
+			// Log
+			Log.d("Methods.java" + "["
+			+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+			+ "]", "Table exitsts: " + tableName);
+		
+		
+		}//if(dbu.tableExists(wdb, ImageFileManager8Activity.refreshLogTableName))
+		
+		/*----------------------------
+		* 3. Insert data
+		----------------------------*/
+		try {
+			dbu.insertData(
+							wdb, 
+							tableName, 
+							DBUtils.cols_refresh_log, 
+							new long[] {lastItemDate, (long) numOfItemsAdded}
+			);
+			
+			return true;
+			
+		} catch (Exception e) {
+			// Log
+			Log.d("Methods.java" + "["
+					+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+					+ "]", "Insert data failed");
+			
+			return false;
+		}
+		
+	}//private static boolean updateRefreshLog(SQLiteDatabase wdb, long lastItemDate)
+
 }//public class Methods

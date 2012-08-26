@@ -463,6 +463,106 @@ public class DBUtils extends SQLiteOpenHelper{
 		
 	}//public insertData(String tableName, String[] columnNames, String[] values)
 
+	public boolean insertData_fileItem(SQLiteDatabase db, String tableName, 
+			String[] columnNames, Object[] values) {
+		/*----------------------------
+		* 1. Insert data
+		----------------------------*/
+		try {
+			// Start transaction
+			db.beginTransaction();
+			
+			// ContentValues
+			ContentValues val = new ContentValues();
+			
+			// Put values
+			val.put(columnNames[0], (String) values[0]);		// file_name
+			val.put(columnNames[1], (String) values[1]);		// file_path
+			
+			val.put(columnNames[2], (String) values[2]);		// table_name
+			
+			val.put(columnNames[3], (String) values[3]);		// memo
+			val.put(columnNames[4], (String) values[4]);		// genre
+			
+			val.put(columnNames[5], (Long) values[5]);		// duration
+			val.put(columnNames[6], (Long) values[6]);		// registered_at
+			
+			val.put(columnNames[7], (Long) values[7]);		// modified_at
+			
+			// Insert data
+			db.insert(tableName, null, val);
+			
+			// Set as successful
+			db.setTransactionSuccessful();
+			
+			// End transaction
+			db.endTransaction();
+			
+			// Log
+			Log.d("DBUtils.java" + "["
+					+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+					+ "]", "Transaction => Ends");
+			
+			
+			return true;
+		
+		} catch (Exception e) {
+			// Log
+			Log.e("DBUtils.java" + "["
+			+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+			+ "]", "Exception! => " + e.toString());
+			
+			return false;
+		}//try
+		
+	}//public insertData_fileItem(String tableName, String[] columnNames, String[] values)
+
+	public boolean insertData_refresh_log(
+				SQLiteDatabase db, String tableName, Object[] values) {
+		/*----------------------------
+		* 1. Insert data
+		----------------------------*/
+		String[] columnNames = DBUtils.cols_refresh_log;
+		
+		try {
+			// Start transaction
+			db.beginTransaction();
+			
+			// ContentValues
+			ContentValues val = new ContentValues();
+			
+			// Put values
+			val.put(columnNames[0], (Long) values[0]);		// "last_refreshed"
+			val.put(columnNames[1], (Long) values[1]);		// "num_of_items_added"
+
+			// Insert data
+			db.insert(tableName, null, val);
+			
+			// Set as successful
+			db.setTransactionSuccessful();
+			
+			// End transaction
+			db.endTransaction();
+			
+			// Log
+			Log.d("DBUtils.java" + "["
+					+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+					+ "]", "Transaction => Ends");
+			
+			
+			return true;
+		
+		} catch (Exception e) {
+			// Log
+			Log.e("DBUtils.java" + "["
+			+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+			+ "]", "Exception! => " + e.toString());
+			
+			return false;
+		}//try
+		
+	}//public insertData_refresh_log(String tableName, String[] columnNames, String[] values)
+
 	public boolean updateData(SQLiteDatabase wdb, String tableName) {
 		/*----------------------------
 		* 1. Insert data
