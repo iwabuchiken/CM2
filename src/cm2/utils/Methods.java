@@ -989,7 +989,8 @@ public class Methods {
 		
 		for (int i = 0; i < c.getCount(); i++) {
 			
-			file_names_tapeatalk.add(c.getString(2));
+//			file_names_tapeatalk.add(c.getString(2));
+			file_names_tapeatalk.add(c.getString(1));
 		
 			c.moveToNext();
 			
@@ -1160,11 +1161,22 @@ public class Methods {
 		 * 10. Return
 			----------------------------*/
 		if (res == true) {
+			
+			// Log
+			Log.d("Methods.java" + "["
+					+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+					+ "]", "refresh_log => Updated");
+			
 
 			return true;
 			
 		} else {//if (res != 0)
-			
+
+			// Log
+			Log.e("Methods.java" + "["
+					+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+					+ "]", "refresh_log updat => Failed");
+
 			return false;
 			
 		}//if (res != 0)
@@ -1511,7 +1523,7 @@ public class Methods {
 		/*----------------------------
 		 * 2. Insert data
 			----------------------------*/
-		Object[] data = {lastUpdated, num_of_items_stored};
+		Object[] data = {lastUpdated, (long)num_of_items_stored};
 		
 		boolean res = dbu.insertData_refresh_log(wdb, MainActv.tableName_refreshLog, data);
 		

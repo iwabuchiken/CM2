@@ -71,6 +71,20 @@ public class FileListAdapter extends ArrayAdapter<FileItem>{
 			----------------------------*/
     	FileItem fi = getItem(position);
     	
+    	/*----------------------------
+		 * 2. Set text => File name
+			----------------------------*/
+		TextView tv = (TextView) v.findViewById(R.id.list_row_tv_file_name);
+		
+		tv.setText(fi.getFile_name());
+
+		/*----------------------------
+		 * 2-2. Set duration, etc.
+			----------------------------*/
+		// Duration
+		TextView tv_duration = (TextView) v.findViewById(R.id.list_row_tv_duration);
+//		tv_duration.setText(String.valueOf(fi.getDuration()));
+		tv_duration.setText(Methods.convert_millSeconds2digitsLabel(fi.getDuration()));
 
 		
 		return v;

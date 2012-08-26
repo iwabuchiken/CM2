@@ -154,6 +154,7 @@ public class MainActv extends ListActivity {
 		
 		boolean res = dbu.dropTable(this, wdb, tableName_root);
 		
+		res = dbu.dropTable(this, wdb, MainActv.tableName_refreshLog);
 		
 	}//private void drop_table(String tableName_root) {
 
