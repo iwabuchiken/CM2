@@ -52,8 +52,10 @@ import android.os.AsyncTask;
 
 import org.apache.commons.lang.StringUtils;
 
+
 import cm2.listeners.DialogButtonOnClickListener;
 import cm2.listeners.DialogButtonOnTouchListener;
+import cm2.main.MainActv;
 
 public class Methods {
 
@@ -138,24 +140,18 @@ public class Methods {
 	
 	
 	public static enum ButtonTags {
-		// MainActivity.java
-		ib_up,
-		
-		// DBAdminActivity.java
-		db_manager_activity_create_table, db_manager_activity_drop_table, 
-		db_manager_activity_register_patterns,
-		
-		// thumb_activity.xml
-		thumb_activity_ib_back, thumb_activity_ib_bottom, thumb_activity_ib_top,
-		
-		// image_activity.xml
-		image_activity_back,
-		
-		// TIListAdapter.java
-		tilist_cb,
+		// main.xml
+		main_bt_play, main_bt_pause, main_bt_rec,
 		
 	}//public static enum ButtonTags
-	
+
+	public static enum ButtonModes {
+		// Play
+		READY, FREEZE, PLAY,
+		// Rec
+		REC,
+	}
+
 	public static enum ItemTags {
 		
 		// MainActivity.java
@@ -194,6 +190,13 @@ public class Methods {
 		actv_main_lv,
 		
 	}//public static enum ListTags
+
+	public static enum LongClickTags {
+		// MainActivity.java
+		main_activity_list,
+		
+		
+	}//public static enum LongClickTags
 
 	
 	/****************************************
@@ -380,70 +383,70 @@ public class Methods {
 		
 	}//public static void confirm_quit(Activity actv, int keyCode)
 
-	public static List<String> getTableList(Activity actv) {
-//		DBUtils dbu = new DBUtils(actv, MainActv.dbName);
-//		
-//		SQLiteDatabase rdb = dbu.getReadableDatabase();
-//
-//		//=> source: http://stackoverflow.com/questions/4681744/android-get-list-of-tables : "Just had to do the same. This seems to work:"
-//		String q = "SELECT name FROM " + "sqlite_master"+
-//						" WHERE type = 'table' ORDER BY name";
-//		
-//		Cursor c = null;
-//		try {
-//			c = rdb.rawQuery(q, null);
-//			
-//			// Log
-//			Log.d("Methods.java" + "["
-//					+ Thread.currentThread().getStackTrace()[2].getLineNumber()
-//					+ "]", "c.getCount(): " + c.getCount());
-//
-//		} catch (Exception e) {
-//			// Log
-//			Log.d("Methods.java" + "["
-//					+ Thread.currentThread().getStackTrace()[2].getLineNumber()
-//					+ "]", "Exception => " + e.toString());
-//		}
-//		
-//		// Table names list
-//		List<String> tableList = new ArrayList<String>();
-//		
-//		// Log
-//		if (c != null) {
-//			c.moveToFirst();
-//			
-//			for (int i = 0; i < c.getCount(); i++) {
-//				//
-//				tableList.add(c.getString(0));
-//				
-//				// Log
-//				Log.d("Methods.java"
-//						+ "["
-//						+ Thread.currentThread().getStackTrace()[2]
-//								.getLineNumber() + "]", "c.getString(0): " + c.getString(0));
-//				
-//				
-//				// Next
-//				c.moveToNext();
-//				
-//			}//for (int i = 0; i < c.getCount(); i++)
-//
-//		} else {//if (c != null)
-//			Log.d("Methods.java" + "["
-//					+ Thread.currentThread().getStackTrace()[2].getLineNumber()
-//					+ "]", "c => null");
-//		}//if (c != null)
-//
-////		// Log
-////		Log.d("Methods.java" + "["
-////				+ Thread.currentThread().getStackTrace()[2].getLineNumber()
-////				+ "]", "c.getCount(): " + c.getCount());
-////		
-//		rdb.close();
-//		
-//		return tableList;
+	public static List<String> getTableList(Activity actv, String dbName) {
+		DBUtils dbu = new DBUtils(actv, dbName);
 		
-		return null;
+		SQLiteDatabase rdb = dbu.getReadableDatabase();
+
+		//=> source: http://stackoverflow.com/questions/4681744/android-get-list-of-tables : "Just had to do the same. This seems to work:"
+		String q = "SELECT name FROM " + "sqlite_master"+
+						" WHERE type = 'table' ORDER BY name";
+		
+		Cursor c = null;
+		try {
+			c = rdb.rawQuery(q, null);
+			
+			// Log
+			Log.d("Methods.java" + "["
+					+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+					+ "]", "c.getCount(): " + c.getCount());
+
+		} catch (Exception e) {
+			// Log
+			Log.d("Methods.java" + "["
+					+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+					+ "]", "Exception => " + e.toString());
+		}
+		
+		// Table names list
+		List<String> tableList = new ArrayList<String>();
+		
+		// Log
+		if (c != null) {
+			c.moveToFirst();
+			
+			for (int i = 0; i < c.getCount(); i++) {
+				//
+				tableList.add(c.getString(0));
+				
+				// Log
+				Log.d("Methods.java"
+						+ "["
+						+ Thread.currentThread().getStackTrace()[2]
+								.getLineNumber() + "]", "c.getString(0): " + c.getString(0));
+				
+				
+				// Next
+				c.moveToNext();
+				
+			}//for (int i = 0; i < c.getCount(); i++)
+
+		} else {//if (c != null)
+			Log.d("Methods.java" + "["
+					+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+					+ "]", "c => null");
+		}//if (c != null)
+
+//		// Log
+//		Log.d("Methods.java" + "["
+//				+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+//				+ "]", "c.getCount(): " + c.getCount());
+//		
+		rdb.close();
+		
+		return tableList;
+		
+//		return null;
 	}//public static List<String> getTableList()
 
 	/****************************************
@@ -840,5 +843,161 @@ public class Methods {
 		return sdf1.format(new Date(millSec));
 		
 	}//public static String get_TimeLabel(long millSec)
+
+	public static String  convert_millSeconds2digitsLabel(long millSeconds) {
+		/*----------------------------
+		 * Steps
+		 * 1. Prepare variables
+		 * 2. Build a string
+		 * 3. Return
+			----------------------------*/
+		/*----------------------------
+		 * 1. Prepare variables
+			----------------------------*/
+		int seconds = (int)(millSeconds / 1000);
+		
+		int minutes = seconds / 60;
+		
+		int digit_seconds = seconds % 60;
+		
+		/*----------------------------
+		 * 2. Build a string
+			----------------------------*/
+		StringBuilder sb = new StringBuilder();
+		
+		if (String.valueOf(minutes).length() < 2) {
+			
+			sb.append("0");
+			
+		}//if (String.valueOf(minutes).length() < 2)
+		
+		sb.append(String.valueOf(minutes));
+		sb.append(":");
+
+		if (String.valueOf(digit_seconds).length() < 2) {
+			
+			sb.append("0");
+			
+		}//if (String.valueOf(digit_seconds).length() < 2)
+
+		sb.append(String.valueOf(digit_seconds));
+		
+		/*----------------------------
+		 * 3. Return
+			----------------------------*/
+		return sb.toString();
+		
+	}//public static void  convert_millSeconds2digitsLabel()
+
+	public static List<String> prepare_file_list_tapeatalk(Activity actv, String tableName) {
+		/*----------------------------
+		 * 1. Set up db
+		 * 2. Table exists?
+		 * 3. Query
+		 * 
+		 * 4. Build a list
+		 * 5. Return
+			----------------------------*/
+		
+		
+		DBUtils dbu = new DBUtils(actv, MainActv.dbName);
+		
+		//
+		SQLiteDatabase wdb = dbu.getWritableDatabase();
+		
+		/*----------------------------
+		 * 2. Table exists?
+			----------------------------*/
+		boolean res = dbu.tableExists(wdb, tableName);
+
+		if (res == false) {
+			// Log
+			Log.d("Methods.java" + "["
+					+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+					+ "]", "テーブルを作ります");
+			
+			res = dbu.createTable(
+								wdb, 
+								tableName, 
+								DBUtils.cols_main_table, 
+								DBUtils.col_types_main_table);
+			
+			if (res == false) {
+				
+				// Log
+				Log.d("Methods.java" + "["
+						+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+						+ "]", "テーブルを作れませんでした");
+				
+				wdb.close();
+				
+				return null;
+				
+			} else {//if (res == false)
+				
+				// Log
+				Log.d("Methods.java" + "["
+						+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+						+ "]", "テーブルを作りました");
+				
+			}//if (res == false)
+			
+		} else {//if (res == false)
+			
+			// Log
+			Log.d("Methods.java" + "["
+					+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+					+ "]", "テーブルはすでにあります");
+			
+		}//if (res == false)
+
+		wdb.close();
+		
+		/*----------------------------
+		 * 3. Query
+			----------------------------*/
+		SQLiteDatabase rdb = dbu.getReadableDatabase();
+		
+		String sql = "SELECT * FROM " + tableName;
+		
+		Cursor c = rdb.rawQuery(sql, null);
+		
+		actv.startManagingCursor(c);
+		
+		if (c.getCount() < 1) {
+			
+			// Log
+			Log.d("Methods.java" + "["
+					+ Thread.currentThread().getStackTrace()[2].getLineNumber()
+					+ "]", "No records: " + tableName);
+			
+			rdb.close();
+			
+			return null;
+			
+		}//if (c.getCount() < 1)
+		
+		/*----------------------------
+		 * 4. Build a list
+			----------------------------*/
+		List<String> file_names_tapeatalk = new ArrayList<String>();
+		
+		c.moveToFirst();
+		
+		for (int i = 0; i < c.getCount(); i++) {
+			
+			file_names_tapeatalk.add(c.getString(2));
+		
+			c.moveToNext();
+			
+		}//for (int i = 0; i < c.getCount(); i++)
+		
+		/*----------------------------
+		 * 5. Return
+			----------------------------*/
+		return file_names_tapeatalk;
+		
+	}//public static List<String> prepare_file_list_tapeatalk(Activity actv)
+
 	
 }//public class Methods

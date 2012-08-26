@@ -27,7 +27,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 /****************************************
- * Copy & pasted from => C:\WORKS\WORKSPACES_ANDROID\ShoppingList\src\shoppinglist\main\DBManager.java
+ * Copy & pasted from => C:\WORKS\WORKSPACES_ANDROID\ShoppingList\src\shoppinglist\main\DBUtils.java
  ****************************************/
 public class DBUtils extends SQLiteOpenHelper{
 
@@ -73,20 +73,13 @@ public class DBUtils extends SQLiteOpenHelper{
 		----------------------------*/
 	// Main table
 	public static final String[] cols_main_table = {
-		"file_name", "file_path", 
-		"duration", 
-		"date_added", "date_modified",
-		"file_info", "memos",
-		"located_at"
+		"file_name", "file_path", "table_name",
+		"memo", "genre", "registered_at", "modified_at"
 	};
 	
-	public static final String[] types_main_table = {
-		"TEXT", "TEXT", 
-//		"TEXT UNIQUE", "TEXT",
-		"INTEGER", 
-		"INTEGER", "INTEGER",
-		"TEXT", "TEXT",
-		"TEXT"
+	public static final String[] col_types_main_table = {
+		"TEXT", 		"TEXT", 		"TEXT",
+		"TEXT", "TEXT", "INTEGER", 		"INTEGER"
 	};
 	
 	
@@ -149,7 +142,7 @@ public class DBUtils extends SQLiteOpenHelper{
 //		if (!tableExists(db, tableName)) {
 		if (tableExists(db, tableName)) {
 			// Log
-			Log.d("DBManager.java" + "["
+			Log.d("DBUtils.java" + "["
 					+ Thread.currentThread().getStackTrace()[2].getLineNumber()
 					+ "]", "Table exists => " + tableName);
 			
@@ -176,7 +169,7 @@ public class DBUtils extends SQLiteOpenHelper{
 		sb.append(");");
 		
 		// Log
-		Log.d("DBManager.java" + "["
+		Log.d("DBUtils.java" + "["
 				+ Thread.currentThread().getStackTrace()[2].getLineNumber()
 				+ "]", "sql => " + sb.toString());
 		
@@ -269,7 +262,7 @@ public class DBUtils extends SQLiteOpenHelper{
 			db.execSQL("VACUUM");
 			
 			// Log
-			Log.d("DBManager.java" + "["
+			Log.d("DBUtils.java" + "["
 					+ Thread.currentThread().getStackTrace()[2].getLineNumber()
 					+ "]", "The table dropped => " + tableName);
 			
@@ -279,7 +272,7 @@ public class DBUtils extends SQLiteOpenHelper{
 		} catch (SQLException e) {
 			// TODO Ž©“®¶¬‚³‚ê‚½ catch ƒuƒƒbƒN
 			// Log
-			Log.e("DBManager.java" + "["
+			Log.e("DBUtils.java" + "["
 					+ Thread.currentThread().getStackTrace()[2].getLineNumber()
 					+ "]", "DROP TABLE => failed (table=" + tableName + "): " + e.toString());
 			
